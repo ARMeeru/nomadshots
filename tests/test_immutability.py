@@ -6,10 +6,13 @@ import hashlib
 from pathlib import Path
 
 import pytest
+from typer.testing import CliRunner
 
 from nomadshots.audit import audit_folder
+from nomadshots.cli import app
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
+runner = CliRunner()
 
 
 def _sha256(path: Path) -> str:
@@ -86,3 +89,43 @@ class TestFixtureImmutability:
         assert not new_files, (
             f"Audit created unexpected files in fixtures dir: {new_files}"
         )
+
+
+class TestCliImmutability:
+    """Verify that CLI output handling cannot modify input files."""
+
+    def test_cli_rejects_report_path_inside_input_folder(self, tmp_path):
+        """The report path must not be allowed inside the audited input tree."""
+        input_dir = tmp_path / "input"
+        input_dir.mkdir()
+        source = input_dir / "minimal.jpg"
+        source.write_bytes((FIXTURES_DIR / "minimal.jpg").read_bytes())
+        digest_before = _sha256(source)
+
+        result = runner.invoke(
+            app,
+            ["audit", str(input_dir), "--out", str(source)],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 1
+        assert "report output must be outside the audited folder" in result.output
+        assert source.exists()
+        assert _sha256(source) == digest_before
+
+    def test_cli_does_not_create_report_inside_input_folder(self, tmp_path):
+        """Rejecting an in-tree report path must not create a new input file."""
+        input_dir = tmp_path / "input"
+        input_dir.mkdir()
+        source = input_dir / "minimal.jpg"
+        source.write_bytes((FIXTURES_DIR / "minimal.jpg").read_bytes())
+        report = input_dir / "audit-report.md"
+
+        result = runner.invoke(
+            app,
+            ["audit", str(input_dir), "--out", str(report)],
+            catch_exceptions=False,
+        )
+
+        assert result.exit_code == 1
+        assert not report.exists()
