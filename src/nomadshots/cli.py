@@ -1,7 +1,5 @@
 """NomadShots CLI — privacy-first photo metadata audit tool."""
-import sys
 from pathlib import Path
-from typing import Optional
 
 import typer
 
