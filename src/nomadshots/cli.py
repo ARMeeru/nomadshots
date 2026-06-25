@@ -46,11 +46,18 @@ def audit(
         typer.echo(f"Error: not a directory: {folder}", err=True)
         raise typer.Exit(code=1)
 
+    out = out.resolve()
+    if out.is_relative_to(folder):
+        typer.echo(
+            f"Error: report output must be outside the audited folder: {out}",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
     # Run audit
     summary = audit_folder(folder, recursive=recursive)
 
     # Generate report
-    out = out.resolve()
     generate_report(summary, out)
 
     # Print terminal summary

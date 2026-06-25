@@ -86,7 +86,7 @@ class TestRecursiveFlag:
         subdir.mkdir()
         shutil.copy(FIXTURES_DIR / "minimal.jpg", subdir / "minimal.jpg")
 
-        report = tmp_path / "report.md"
+        report = tmp_path.parent / f"{tmp_path.name}-report.md"
         result = runner.invoke(
             app,
             ["audit", "--recursive", str(tmp_path), "--out", str(report)],

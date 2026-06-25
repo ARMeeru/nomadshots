@@ -25,6 +25,7 @@ nomadshots audit /path/to/photos
 ```
 
 By default this writes `audit-report.md` in the current directory.
+If the current directory is also the audited folder, pass `--out` with a path outside that folder.
 
 Useful options:
 
@@ -50,6 +51,7 @@ Exit codes:
 ## Privacy Guarantees
 
 - Originals are read-only. The audit command never modifies, moves, renames, or deletes source images.
+- Report output paths inside the audited folder are rejected to avoid overwriting source files.
 - No network calls are used in the default code path.
 - Reverse geocoding uses the bundled GeoNames `cities15000` dataset.
 - GPS coordinates are not printed to terminal logs. They are only included in the user-requested audit report.
@@ -77,6 +79,6 @@ Expected results:
 - The fixture audit exits `2` because `tests/fixtures/corrupt.jpg` is intentionally corrupt.
 - The network-import grep returns no production matches.
 - The production `shell=True` grep returns no matches. Test files may mention `shell=True` in assertions.
-- Package-data and immutability tests pass.
+- Package-data and library/CLI immutability tests pass.
 
 If packaging changes, also build and install a local artifact in a clean environment, then rerun the package-data and CLI smoke checks.
